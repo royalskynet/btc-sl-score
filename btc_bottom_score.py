@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
-"""BTC bottom composite score 0-100. Higher = closer to bottom.
+"""BCI — Bottom Confidence Index (抄底信心指數).
 
-7-signal composite (4 macro + 3 on-chain).
-Free APIs only, no auth. Stores daily history to sqlite.
+0-100. Higher = stronger confidence we're near a market bottom.
+7-signal composite (4 macro + 3 on-chain). Free APIs only, no auth.
+Stores daily history to sqlite.
 
   python3 btc_bottom_score.py            # full table + observation
   python3 btc_bottom_score.py --summary  # 3-section TG-friendly summary
   python3 btc_bottom_score.py --history 30
 
-v2.1 changes (methodology hardening, no new signals):
-  - source-level fallback for the 4 bitcoin-data.com on-chain metrics
-  - retry with exponential backoff in _get
-  - piecewise-LINEAR scoring (interpolated) instead of stepped buckets
-  - Hash Ribbon converted from boolean to continuous depth-of-capitulation
-  - confidence flag when signals are missing
+v2.2 — renamed indicator to BCI (Bottom Confidence Index).
+       Visible "data coverage" label distinguishes data-completeness
+       from the index name. No scoring math changed.
+v2.1   — piecewise-linear scoring, continuous hash ribbon, source fallback,
+       retry/backoff, data-coverage flag.
 """
 from __future__ import annotations
 import json
@@ -25,7 +25,7 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-UA = {"User-Agent": "btc-bottom-score/2.1"}
+UA = {"User-Agent": "bci/2.2"}
 
 DB_PATH = Path(
     os.environ.get(
@@ -307,7 +307,7 @@ def _label(name, val, s):
 
 def observation(score, rows, confidence):
     capitulation = sum(1 for _, s, _, _ in rows if s is not None and s >= 80)
-    conf_note = "" if confidence >= 0.85 else f"（僅 {confidence*100:.0f}% 權重有資料，可信度下降）"
+    conf_note = "" if confidence >= 0.85 else f"（僅 {confidence*100:.0f}% 權重有資料，本次取樣不完整）"
     if score >= 90:
         return f"七訊號中 {capitulation} 個在抄底區；五年一遇等級。全倉。{conf_note}"
     if score >= 85:
@@ -332,7 +332,7 @@ def summary(rows, composite, confidence):
     line2 = " / ".join(labels[3:5])
     line3 = " / ".join(labels[5:])
     return (
-        f"🪙 BTC 抄底分數：{composite:.1f}/100 → {emoji} {zone_en}（{zone_zh}）\n"
+        f"🪙 BCI 抄底信心指數：{composite:.1f}/100 → {emoji} {zone_en}（{zone_zh}）\n"
         f"📊 {line1}\n"
         f"    {line2}\n"
         f"    {line3}\n"
@@ -485,7 +485,7 @@ def main():
         print(summary(rows, composite, confidence))
         return 0
 
-    print(f"\n{'BTC Bottom Composite Score (v2.1)':^66}")
+    print(f"\n{'BCI — Bottom Confidence Index (v2.2)':^66}")
     print("=" * 66)
     print(f"{'Metric':<18}{'Value':<14}{'Score':>10}{'Weight':>14}")
     print("-" * 66)
@@ -493,8 +493,8 @@ def main():
         s_str = f"{s:.1f}" if s is not None else "—"
         print(f"{name:<18}{val:<14}{s_str:>10}{w * 100:>13.0f}%")
     print("-" * 66)
-    print(f"{'COMPOSITE':<48}{composite:>7.1f} / 100")
-    print(f"{'CONFIDENCE':<48}{confidence*100:>7.0f} %")
+    print(f"{'BCI':<48}{composite:>7.1f} / 100")
+    print(f"{'DATA COVERAGE':<48}{confidence*100:>7.0f} %")
     emoji, zone_en, zone_zh = interpret(composite)
     print(f"\n{emoji} {zone_en}（{zone_zh}）")
     print(f"\n💡 {observation(composite, rows, confidence)}\n")

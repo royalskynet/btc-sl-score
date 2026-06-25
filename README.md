@@ -1,6 +1,6 @@
-# BTC SL 抄底分數
+# BCI — 抄底信心指數（Bottom Confidence Index）
 
-7 訊號 on-chain composite score。一個 0–100 數字告訴你現在離 BTC 底部多近。
+7 訊號 composite，0–100 分數越高 = 越敢買的時機。一個數字告訴你現在離 BTC 底部多近。
 
 ## TL;DR
 

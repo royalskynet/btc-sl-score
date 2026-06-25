@@ -1,4 +1,6 @@
-# DEVLOG — btc-sl-score
+# DEVLOG — BCI (Bottom Confidence Index)
+
+> 舊稱「BTC 抄底分數」/「SL score」。v2.2 起正式命名為 **BCI — Bottom Confidence Index（抄底信心指數）**。Repo / 檔名暫不改，避免破壞外部連結。
 
 > 這份文件的目的：讓一個完全沒有上下文的開發者（或新的 AI session）能獨立接手本專案，理解設計意圖、現狀、與待辦，而不需要追問原作者。
 > 維護規則：每次有實質變動就在「變更紀錄」最上方加一條。不要刪舊紀錄。
@@ -123,6 +125,13 @@ rm ~/.btc-sl-score/history.db   # 歷史歸零；舊欄位定義已對不上，�
 ---
 
 ## 7. 變更紀錄（最新在上）
+
+### v2.2
+- 指標正式命名 **BCI — Bottom Confidence Index（抄底信心指數）**。
+- 為避免「指數名稱 confidence」與「資料完整度 confidence」撞名，輸出端顯示改：
+  - `COMPOSITE` → `BCI`
+  - `CONFIDENCE` → `DATA COVERAGE`
+- 變數名 / db 欄位名（`confidence`）保留不動 — 純命名收斂，零行為改動，schema 相容。
 
 ### v2.1
 - 計分從階梯 bucket 改為分段線性插值（`_interp`）。
