@@ -22,7 +22,7 @@ UA = {"User-Agent": "btc-bottom-score/2.0"}
 DB_PATH = Path(
     os.environ.get(
         "BTC_SL_DB",
-        str(Path.home() / ".openalice" / "data" / "cache" / "btc_sl_history.db"),
+        str(Path.home() / ".btc-sl-score" / "history.db"),
     )
 )
 
