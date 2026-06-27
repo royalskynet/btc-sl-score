@@ -25,6 +25,12 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Windows terminals default to CP950/GBK which can't encode emoji
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 UA = {"User-Agent": "bci/2.2"}
 
 DB_PATH = Path(
@@ -68,6 +74,17 @@ def _get_first(urls, extractor):
     return None
 
 
+def _get_last_row(url, key):
+    """Fetch array from api.bitcoin-data.com, return last row's value by key."""
+    d = _get(url)
+    if not isinstance(d, list) or not d:
+        return None
+    try:
+        return float(d[-1][key])
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
 # --- fetchers ----------------------------------------------------------------
 
 def fear_greed():
@@ -78,7 +95,7 @@ def fear_greed():
 
 
 def mvrv_zscore():
-    return _get_first(
+    v = _get_first(
         [
             "https://bitcoin-data.com/api/v1/mvrv-zscore/last",
             "https://bitcoin-data.com/v1/mvrv-zscore/last",
@@ -86,6 +103,9 @@ def mvrv_zscore():
         lambda d: float(
             next(d[k] for k in ("mvrvZscore", "value", "mvrv_zscore") if k in d)
         ),
+    )
+    return v if v is not None else _get_last_row(
+        "https://api.bitcoin-data.com/v1/mvrv-zscore", "mvrvZscore"
     )
 
 
@@ -136,32 +156,41 @@ def price_ma200_ratio():
 
 
 def sth_mvrv():
-    return _get_first(
+    v = _get_first(
         [
             "https://bitcoin-data.com/api/v1/sth-mvrv/last",
             "https://bitcoin-data.com/v1/sth-mvrv/last",
         ],
         lambda d: float(d["sthMvrv"]),
     )
+    return v if v is not None else _get_last_row(
+        "https://api.bitcoin-data.com/v1/sth-mvrv", "sthMvrv"
+    )
 
 
 def lth_sopr():
-    return _get_first(
+    v = _get_first(
         [
             "https://bitcoin-data.com/api/v1/lth-sopr/last",
             "https://bitcoin-data.com/v1/lth-sopr/last",
         ],
         lambda d: float(d["lthSopr"]),
     )
+    return v if v is not None else _get_last_row(
+        "https://api.bitcoin-data.com/v1/lth-sopr", "lthSopr"
+    )
 
 
 def nupl():
-    return _get_first(
+    v = _get_first(
         [
             "https://bitcoin-data.com/api/v1/nupl/last",
             "https://bitcoin-data.com/v1/nupl/last",
         ],
         lambda d: float(d["nupl"]),
+    )
+    return v if v is not None else _get_last_row(
+        "https://api.bitcoin-data.com/v1/nupl", "nupl"
     )
 
 
